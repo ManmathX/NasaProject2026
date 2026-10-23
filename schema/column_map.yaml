@@ -1,0 +1,96 @@
+# Raw NASA column -> canonical name, role, units and task.
+#
+# Keys are the raw headers byte-for-byte (leading/double spaces and typos kept).
+# role: INPUT (set before the test) | OUTPUT (observed during/after the test) |
+#       ID | META | IGNORE.  An unmapped raw column fails normalization.
+# type: float | int | category | text | date | time
+# unit_in: the unit in the raw file; unit: the canonical unit after conversion.
+# values: optional category spelling map (raw, case-insensitive -> canonical).
+#         Without it, category text is kept as written (stripped).
+# task: which task tables read the column.
+#
+# Corrections applied from the build spec ("Fixes to the field mapping"):
+#   - FLEX "O / N / CO / He" are O2, N2, CO2, He (subscripts lost in export).
+#   - FLEX "Burning rate; mm" is the burning-rate constant K in mm2/s, an OUTPUT.
+#     TODO: confirm the unit against the PSI-69 documentation.
+#   - CFI-G Normal and Inverse are mapped separately (their columns differ).
+#   - Hot ignition, Cool flame?, Peak burner T/Temp, after-test values: OUTPUT.
+#   - TFP: IGNORE until the PSI-159 documentation defines it.
+#   - Gravity Level is not a raw column here; gravity comes from the registry as META.
+
+PSI-69_FLEX:
+  "FLEX Test #": {name: test_id, role: ID, type: int}
+  "FLEX Identifier": {name: flex_id, role: ID, type: text}
+  "Test Date": {name: test_date, role: META, type: date, task: [ext_flex],
+                notes: "Group column for validation; tests run in sessions with shared conditions."}
+  "Test GMT": {name: test_gmt, role: META, type: time}
+  "Fuel": {name: fuel, role: INPUT, type: category, task: [ext_flex],
+           values: {Methanol: methanol, Heptane: n-heptane}}
+  "Ambient pressure; mmHg": {name: p_atm, role: INPUT, type: float, unit_in: mmHg, unit: atm, task: [ext_flex]}
+  "O initial ambient composition; mole fraction": {name: x_o2, role: INPUT, type: float, unit_in: fraction, unit: fraction, task: [ext_flex]}
+  "N initial ambient composition; mole fraction": {name: x_n2, role: INPUT, type: float, unit_in: fraction, unit: fraction,
+                                                   notes: "Not a model input: the four gas fractions sum to 1."}
+  "CO initial ambient composition; mole fraction": {name: x_co2, role: INPUT, type: float, unit_in: fraction, unit: fraction, task: [ext_flex],
+                                                    notes: "CO2 (subscript lost). FLEX used CO2 and He as diluents."}
+  "He initial ambient composition; mole fraction": {name: x_he, role: INPUT, type: float, unit_in: fraction, unit: fraction, task: [ext_flex]}
+  "Droplet initial diameter; mm": {name: d0_mm, role: INPUT, type: float, unit_in: mm, unit: mm, task: [ext_flex]}
+  "Visible flame extinction diameter; mm": {name: dext_mm, role: OUTPUT, type: float, unit_in: mm, unit: mm}
+  "Burning rate; mm": {name: k_mm2_s, role: OUTPUT, type: float, unit_in: mm2/s, unit: mm2/s,
+                       notes: "Burning-rate constant K; header unit 'mm' is likely wrong. Verify in PSI-69 docs."}
+  "Burn time; s": {name: burn_s, role: OUTPUT, type: float, unit_in: s, unit: s}
+  "Test end": {name: test_end, role: OUTPUT, type: category, task: [ext_flex],
+               notes: "Prediction target; raw text mapped to labels in schema/targets.yaml."}
+
+PSI-159_CFI-G_Normal:
+  "Flame Type": {name: flame_type, role: INPUT, type: category, task: [ext_cfig], values: {Normal: normal}}
+  "Day": {name: day, role: META, type: int, task: [ext_cfig], notes: "Group column for validation."}
+  "Fuel": {name: fuel, role: INPUT, type: category, task: [ext_cfig],
+           values: {ethane: ethane, propane: propane, "30% ethane": ethane, "30% propane": propane,
+                    "30% butane": butane, "50% butane": butane},
+           notes: "Dilution is carried by x_f; the raw label (e.g. '30% butane') stays in the ingested table."}
+  "Test": {name: test_id, role: ID, type: text}
+  "Cool flame?": {name: cool_flame, role: OUTPUT, type: text}
+  " XO2 before test": {name: x_o2, role: INPUT, type: float, unit_in: fraction, unit: fraction, task: [ext_cfig],
+                       notes: "Normal flame: O2 in the ambient (the oxidizer stream)."}
+  "XO2  after test": {name: x_o2_after, role: OUTPUT, type: float, unit_in: fraction, unit: fraction}
+  "approx p (bar)": {name: p_atm, role: INPUT, type: float, unit_in: bar, unit: atm, task: [ext_cfig]}
+  "Xf": {name: x_f, role: INPUT, type: float, unit_in: fraction, unit: fraction, task: [ext_cfig],
+         notes: "Normal flame: fuel fraction in the burner (fuel) stream."}
+  "mHC (mg/s)": {name: fuel_flow_mg_s, role: INPUT, type: float, unit_in: mg/s, unit: mg/s, task: [ext_cfig]}
+  "TFP": {name: tfp, role: IGNORE, type: category, notes: "Meaning undocumented; exclude until PSI-159 docs define it."}
+  "Tad (K)": {name: tad_k, role: INPUT, type: float, unit_in: K, unit: K, task: [ext_cfig]}
+  "Zst": {name: zst, role: INPUT, type: float, task: [ext_cfig]}
+  "Hot ignition": {name: hot_ignition, role: OUTPUT, type: category, values: {"Yes": "yes", "No": "no", flash: flash}}
+  "burn time (sec)": {name: burn_s, role: OUTPUT, type: float, unit_in: s, unit: s}
+  "Self-ext or flow term": {name: ext_outcome, role: OUTPUT, type: category, task: [ext_cfig],
+                            notes: "Prediction target; SE = self-extinguished, FT = flow terminated (censored), '-' = no ignition."}
+  "Peak burner T (C )": {name: peak_burner_t_k, role: OUTPUT, type: float, unit_in: C, unit: K}
+  "Comments": {name: comments, role: META, type: text}
+
+PSI-159_CFI-G_Inverse:
+  "Flame Type": {name: flame_type, role: INPUT, type: category, task: [ext_cfig], values: {Inverse: inverse}}
+  "Day": {name: day, role: META, type: int, task: [ext_cfig], notes: "Group column for validation."}
+  "Fuel": {name: fuel, role: INPUT, type: category, task: [ext_cfig],
+           values: {ethane: ethane, propane: propane, butane: butane}}
+  "Test": {name: test_id, role: ID, type: text}
+  "Xf  before test": {name: x_f, role: INPUT, type: float, unit_in: fraction, unit: fraction, task: [ext_cfig],
+                      notes: "Inverse flame: fuel fraction in the ambient (the fuel stream)."}
+  "Xf  after test": {name: x_f_after, role: OUTPUT, type: float, unit_in: fraction, unit: fraction}
+  "approx p (bar)": {name: p_atm, role: INPUT, type: float, unit_in: bar, unit: atm, task: [ext_cfig]}
+  "XO2": {name: x_o2, role: INPUT, type: float, unit_in: fraction, unit: fraction, task: [ext_cfig],
+          notes: "Inverse flame: O2 in the burner (oxidizer) stream."}
+  "HC burnrate (mg/s)": {name: fuel_flow_mg_s, role: INPUT, type: float, unit_in: mg/s, unit: mg/s, task: [ext_cfig],
+                         notes: "Set point: O2 flow = this x the fuel's stoichiometric O2/fuel mass ratio in every row."}
+  "O2 flow rate (mg/s)": {name: o2_flow_mg_s, role: INPUT, type: float, unit_in: mg/s, unit: mg/s, task: [ext_cfig]}
+  "TFP": {name: tfp, role: IGNORE, type: category, notes: "Meaning undocumented; exclude until PSI-159 docs define it."}
+  "Tad (K)": {name: tad_k, role: INPUT, type: float, unit_in: K, unit: K, task: [ext_cfig]}
+  "Zst": {name: zst, role: INPUT, type: float, task: [ext_cfig]}
+  "Hot ignition": {name: hot_ignition, role: OUTPUT, type: category, values: {"Yes": "yes", "No": "no", flash: flash}}
+  "burn time (sec)": {name: burn_s, role: OUTPUT, type: float, unit_in: s, unit: s}
+  "Self -ext or flow term": {name: ext_outcome, role: OUTPUT, type: category, task: [ext_cfig],
+                             notes: "Prediction target; SE / FT (censored) / '-' = no ignition."}
+  "Peak burner Temp (C)": {name: peak_burner_t_k, role: OUTPUT, type: float, unit_in: C, unit: K}
+  "Peak burner temp (K)": {name: peak_burner_t_k_reported, role: OUTPUT, type: float, unit_in: K, unit: K,
+                           notes: "NASA's own C->K conversion of the previous column; kept for cross-checking."}
+  "Color": {name: color, role: META, type: text}
+  "Comments": {name: comments, role: META, type: text}

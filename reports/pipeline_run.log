@@ -1,0 +1,51 @@
+== Flow 1: ingest
+  PSI-69_FLEX              rows_out=274
+  PSI-159_CFI-G_Normal     rows_out=179
+  PSI-159_CFI-G_Inverse    rows_out=154
+== Flow 2: normalize
+== Flow 3: task tables
+
+== ext_flex: 206 rows, 73 groups (min 13 per fold)
+   raw outcome counts: {'Extinction': 186, 'Disruption': 61, 'Completion': 27}
+   class balance: {0: 27, 1: 179}
+   excluded by label: 61, missing inputs: 7
+   NOTE: target mapping in schema/targets.yaml is provisional (reviewed_by is null)
+
+== ext_cfig: 272 rows, 23 groups (min 5 per fold)
+   raw outcome counts: {'SE': 183, 'FT': 89, '-': 61}
+   class balance: {0: 89, 1: 183}
+   excluded by label: 61, missing inputs: 0
+   NOTE: target mapping in schema/targets.yaml is provisional (reviewed_by is null)
+== Flow 4: train ext_flex
+
+model              ROC-AUC          PR-AUC     PR-AUC(min)           Brier         Bal.acc
+majority     0.500 ± 0.000   0.869 ± 0.013   0.131 ± 0.013   0.131 ± 0.013   0.500 ± 0.000
+logreg       0.784 ± 0.076   0.962 ± 0.014   0.439 ± 0.157   0.164 ± 0.050   0.665 ± 0.128  <- chosen
+rf           0.783 ± 0.087   0.961 ± 0.019   0.442 ± 0.130   0.146 ± 0.024   0.643 ± 0.110
+hgb          0.736 ± 0.085   0.944 ± 0.025   0.413 ± 0.115   0.133 ± 0.027   0.620 ± 0.095
+logreg_calibrated   0.781 ± 0.079   0.961 ± 0.016   0.435 ± 0.132   0.105 ± 0.012   0.509 ± 0.040
+
+Leave-one-fuel-out (chosen model):
+  test_on_methanol       n=130 roc_auc=0.654 bal_acc=0.614 brier=0.159
+  test_on_n-heptane      n= 76 roc_auc=0.376 bal_acc=0.474 brier=0.305
+== Flow 5: coverage
+methanol/CO2         n= 65 d75=0.659 d95=1.410 d99=1.875
+methanol/He          n= 24 d75=1.241 d95=1.636 d99=1.673
+methanol/N2          n= 41 d75=0.552 d95=2.084 d99=2.162
+n-heptane/CO2        n= 30 d75=0.826 d95=1.192 d99=3.821
+n-heptane/He         n= 20 d75=0.957 d95=1.093 d99=1.196
+n-heptane/N2         n= 26 d75=0.763 d95=2.192 d99=2.423
+
+Error by coverage level (out-of-fold):
+  High    n= 488 error_rate=0.098 brier=0.087
+  Medium  n= 173 error_rate=0.081 brier=0.067
+  Low     n= 369 error_rate=0.206 brier=0.146
+  error rises High -> Low: False
+== Flow 7: maps and physics check
+  methanol   CO2  flagged=False share_rising=0.0
+  methanol   He   flagged=False share_rising=0.0
+  methanol   N2   flagged=False share_rising=0.0
+  n-heptane  CO2  flagged=False share_rising=0.0
+  n-heptane  He   flagged=False share_rising=0.0
+  n-heptane  N2   flagged=False share_rising=0.0
+exit=0

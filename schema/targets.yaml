@@ -1,0 +1,23 @@
+# Raw outcome text -> training label. Allowed labels: 1, 0, exclude, TODO.
+# tasks.py stops if any observed value is missing here or still TODO.
+#
+# STATUS: provisional. These mappings were made from the data, not yet checked against the
+# PSI-69 and PSI-159 documentation. A teammate should confirm them and set reviewed_by.
+
+ext_flex:
+  source_column: test_end
+  reviewed_by: null
+  labels:
+    Extinction: 1      # flame went out with droplet left (extinction diameter recorded in 159 of 186 rows)
+    Completion: 0      # burned to completion. CHECK: 14 of these rows still record an extinction diameter (up to 3.04 mm)
+    Disruption: exclude  # droplet broke up; the outcome is ambiguous
+  censored: []
+
+ext_cfig:
+  source_column: ext_outcome
+  reviewed_by: null
+  labels:
+    SE: 1              # self-extinguished
+    FT: 0              # flow terminated: stopped early, so censored rather than "sustained"
+    "-": exclude       # no ignition (Hot ignition = No in every such row)
+  censored: [FT]

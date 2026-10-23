@@ -1,0 +1,36 @@
+# One entry per NASA file in data/raw/. Raw files are read-only; ingest.py refuses to run if a hash changes.
+# Datasets in the spec that are not here yet: PSI-25 BASS-II, PSI-98/99/100 SAFFIRE-1/2/3, PSI-107 SPICE, PSI-102 SAME.
+# TODO: fill source_url with each dataset's NASA PSI page (https://psi.nasa.gov) once confirmed.
+datasets:
+  - dataset_id: PSI-69_FLEX
+    file: "PSI-69_Experimental table_FLEX (1).csv"
+    encoding: cp1252          # uses an en dash (0x96) as a missing-value marker
+    psi_id: PSI-69
+    experiment: FLEX
+    category: extinction
+    platform: ISS
+    gravity: microgravity
+    source_url: null
+    sha256: 37c88ce8ae9391b7544ff630a45ce87543d04d317cdbfbed104fe7d5c27e1b96
+
+  - dataset_id: PSI-159_CFI-G_Normal
+    file: "PSI-159_Experimental table_CFI-G_Normal Flames.csv"
+    encoding: utf-8
+    psi_id: PSI-159
+    experiment: CFI-G
+    category: extinction
+    platform: ISS
+    gravity: microgravity
+    source_url: null
+    sha256: d95a621c3fbd27d204dd32ed29fa17d68f2b779d6a523cde8479ed7ebaa5251a
+
+  - dataset_id: PSI-159_CFI-G_Inverse
+    file: "PSI-159_Experimental table_CFI-G_Inverse Flames.csv"
+    encoding: utf-8
+    psi_id: PSI-159
+    experiment: CFI-G
+    category: extinction
+    platform: ISS
+    gravity: microgravity
+    source_url: null
+    sha256: d4d44f8b9896936728748e34d1b6ad0812032a92fa5289599b708c138e3a9b39

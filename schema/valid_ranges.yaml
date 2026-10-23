@@ -1,0 +1,21 @@
+# Physical sanity limits in canonical units, keyed by canonical column name.
+# A value outside [min, max] (or equal to an exclusive bound) becomes NULL and gets flag_<name> = true.
+# The row is always kept.
+x_o2:            {min: 0.0, max: 1.0}
+x_n2:            {min: 0.0, max: 1.0}
+x_co2:           {min: 0.0, max: 1.0}
+x_he:            {min: 0.0, max: 1.0}
+x_f:             {min: 0.0, max: 1.0, exclusive_min: true, notes: "No fuel in the fuel stream means no test."}
+x_o2_after:      {min: 0.0, max: 1.0}
+x_f_after:       {min: 0.0, max: 1.0}
+p_atm:           {min: 0.0, max: 5.0, exclusive_min: true, notes: "FLEX has one 0 mmHg row."}
+d0_mm:           {min: 0.0, max: 10.0, exclusive_min: true}
+dext_mm:         {min: 0.0, max: 10.0}
+k_mm2_s:         {min: 0.0, max: 5.0, exclusive_min: true}
+burn_s:          {min: 0.0, max: 600.0}
+fuel_flow_mg_s:  {min: 0.0, max: 50.0, exclusive_min: true}
+o2_flow_mg_s:    {min: 0.0, max: 100.0, exclusive_min: true}
+tad_k:           {min: 300.0, max: 4000.0}
+zst:             {min: 0.0, max: 1.0}
+peak_burner_t_k: {min: 200.0, max: 1500.0}
+peak_burner_t_k_reported: {min: 200.0, max: 1500.0}
